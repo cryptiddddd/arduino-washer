@@ -88,6 +88,7 @@ void loop() {
 		digitalWrite(fanPin, HIGH);
 	}
 
+	// process running
 	else if (i < cycles && button == 1) {
 		MotorRun();
 
@@ -121,11 +122,13 @@ void loop() {
 // OTHER ROUTINES!
 void MotorRun() {
 	if (switchBottom.isPressed()) {
-			stepperState = STATE_CHANGE_DIR;
-			direction = DIRECTION_CW;
-		}
+		Serial.println("BOTTOM SWITCH is pressed.");
+		stepperState = STATE_CHANGE_DIR;
+		direction = DIRECTION_CW;
+	}
 
 	else if (switchTop.isPressed()) {
+		Serial.println("TOP SWITCH is pressed.");
 		stepperState = STATE_CHANGE_DIR;
 		Serial.println("The limit switch Top: TOUCHED");
 		direction = DIRECTION_CCW;
@@ -133,6 +136,8 @@ void MotorRun() {
 
 	switch (stepperState) {
 		case STATE_CHANGE_DIR:
+			// print the new direction
+			Serial.println("CHANGING DIRECTION!");
 			Serial.print("The direction -> ");
 			
 			if (direction == DIRECTION_CW) {
@@ -148,6 +153,7 @@ void MotorRun() {
 			break;
 
 		case STATE_MOVE:
+			Serial.println("STATE MOVE!"); // rename start move???
 			targetPos = direction * MAX_POSITION;
 			zStepper.setCurrentPosition(0);
 			zStepper.moveTo(targetPos);
@@ -156,9 +162,11 @@ void MotorRun() {
 			break;
 
 		case STATE_MOVING: // without this state, the move will stop after reaching maximum position
+			Serial.println(zStepper.distanceToGo());
 			if (zStepper.distanceToGo() == 0) { // if motor moved to the maximum position
 				zStepper.setCurrentPosition(0);
 				zStepper.moveTo(targetPos);
+				stepperState = STATE_CHANGE_DIR;
 			}
 
 			break;
