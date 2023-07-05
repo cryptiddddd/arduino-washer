@@ -20,14 +20,14 @@ const int startPin = 8;
 
 const int MAX_POSITION = 0x7FFFFFFF; // maximum of position we can set (long type)
 const int MOVE_SPEED = 1000; // must be < max speed 4000?
-const int stepsPerRev = 1600;
+const int REV_STEPS = 1600;
 
 ezButton switchBottom(9);
 ezButton switchTop(11);
 ezButton startSwitch(startPin);
 
 AccelStepper zStepper(AccelStepper::FULL2WIRE, 2, 3);
-Stepper rStepper(stepsPerRev, 4, 5);
+Stepper rStepper(REV_STEPS, 4, 5);
 
 
 // OTHER OPS
@@ -66,7 +66,7 @@ void go() {
 void rotate() {
 	Serial.println("attempting rotation...");
 
-	rStepper.step(stepsPerRev);
+	rStepper.step(REV_STEPS);
 	Serial.println("DELAYING! FOR sAFETY?");
 	delay(500);
 	Serial.println("returning");

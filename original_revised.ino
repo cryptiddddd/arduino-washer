@@ -18,7 +18,7 @@ const int rStepPin = 5;
 const int fanPin = 6;
 const int startPin = 8;
 
-const int stepsPerRev = 1600;
+const int REV_STEPS = 1600;
 
 const int DIRECTION_CCW = 1;
 const int DIRECTION_CW = -1;
@@ -36,7 +36,7 @@ ezButton switchTop(11);
 ezButton startSwitch(startPin);
 
 AccelStepper zStepper(AccelStepper::FULL2WIRE, 2, 3);
-Stepper rStepper(stepsPerRev, 4, 5);
+Stepper rStepper(REV_STEPS, 4, 5);
 
 int stepperState = STATE_MOVE;
 int direction = DIRECTION_CCW;
@@ -177,20 +177,20 @@ void MotorRun() {
 
 void rot_motor() {
 	Serial.println("Rot Motor: clockwise");
-	rStepper.step(stepsPerRev);
+	rStepper.step(REV_STEPS);
 	delay(50);
 
 	// step one revolution in the other direction:
 	Serial.println("Rot Motor: counterclockwise");
-	rStepper.step(-stepsPerRev);
+	rStepper.step(-REV_STEPS);
 	delay(50);
 
 	Serial.println("Rot Motor: clockwise");
-	rStepper.step(stepsPerRev);
+	rStepper.step(REV_STEPS);
 	delay(50);
 
 	// step one revolution in the other direction:
 	Serial.println("Rot Motor: counterclockwise");
-	rStepper.step(-stepsPerRev);
+	rStepper.step(-REV_STEPS);
 	delay(50);
 }
