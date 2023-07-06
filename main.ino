@@ -6,28 +6,27 @@
 #include <AccelStepper.h>
 #include <ezButton.h>
 
-/* PIN DEFINITIONS, see setup() for setup. */
-const int dirPin = 2;
-const int fanPin = 6;
-const int stepPin = 3;
-const int startPin = 8;
+/* PIN DEFINITIONS. */
+const unsigned short int dirPin = 2;
+const unsigned short int fanPin = 6;
+const unsigned short int stepPin = 3;
+const unsigned short int startPin = 8;
 
 /* OBJECTS */
 AccelStepper verticalStep(AccelStepper::FULL2WIRE, 2, 3);
-AccelStepper rotationStep(AccelStepper::FULL2WIRE, 4, 5);
-// todo: define rotation stepper, and write its logic.
+AccelStepper rotationStep(AccelStepper::FULL2WIRE, 4, 5); // this may need to be 
 
 ezButton topFlag(11);
 ezButton botFlag(9);
 ezButton startBtn(startPin);
 
 /* UNIT DEFINITIONS */
-const int MAX_MOVE_SPEED = 2000; 
+const int MAX_MOVE_SPEED = 3000; 
 const int MOVE_SPEED = 2000; // must be < max speed 4000
 const int REV_STEPS = 1600;
 
-/*********** TIMER VARS ***********/
-int totalMS = 20000; // This will be the variable used by the LCD screen and its buttons. The goal time.
+/* TIMER VARS */
+const int TOTAL_MS = 20000; // This will be the variable used by the LCD screen and its buttons. The goal time.
 
 
 /*********** CALCS ***********/
@@ -40,7 +39,7 @@ int totalMS = 20000; // This will be the variable used by the LCD screen and its
 */
 int secondsRemaining(int startTime) {
     // Return goal time minus current time.
-    return totalMS - (millis() - startTime);
+    return TOTAL_MS - (millis() - startTime);
 }
 
 
@@ -94,13 +93,6 @@ void lowerArm() {
 }
 
 /**
- * Lifts arm, NOT into park position, but upwards in the glass.
-*/
-void liftArm() {
-
-}
-
-/**
  * Returns the arm to park position.
 */
 void parkArm() {
@@ -112,22 +104,16 @@ void parkArm() {
 }
 
 /**
- * Rotates the arm.
- * @param direction Direction of rotation, accepts only 1 or -1.
- * @example `rotateArm(-1)` rotates counter-clockwise, `rotateArm(1)` rotates clockwise.
-*/
-void rotateArm(int direction) {
-
-}
-
-/**
  * Runs the wash cycle. Can be stopped by pressing start button.
 */
 void washCycle() {
     toggleFan(true);
 
+    // Set position 0.
     lowerArm();
     verticalStep.setCurrentPosition(0);
+
+    // Set speeds.
     verticalStep.setSpeed(-MOVE_SPEED);
     rotationStep.setSpeed(MOVE_SPEED);
 
@@ -135,7 +121,7 @@ void washCycle() {
     int startTime = millis();
 
     while (isRunning(startTime)) {
-        // wash cycle washy washy scrub scrub a dubby
+        // Listen for "off".
         buttonLoops();
 
 		if (startBtn.isPressed()) {
@@ -148,45 +134,15 @@ void washCycle() {
             verticalStep.setSpeed(-verticalStep.speed());
         }
 
-        rotationStep.runSpeed();
+        // rotationStep.runSpeed(); // temp -- run only the vertcal stepper, determine what is slowing the cycle so badly.
 		verticalStep.runSpeed();
     }
 
+    // Reset.
     parkArm();
     toggleFan(false);
 }
 
-/**
- * 07/05/2023
- * The goal here is to see what program variables are equivalent to moving the arm 1.5 inches upward..
-*/
-void runTest() {
-    toggleFan(true);
-
-    lowerArm(); // Lower the arm as far as it can go
-    int speed = verticalStep.speed();
-    verticalStep.setCurrentPosition(0); // side effect of resetting speed!!!
-    verticalStep.setSpeed(-speed);
-
-    Serial.println("movement beginning");
-    unsigned long int move_count = 0;
-    while (move_count < 100000) { // change to for loop, also fix the casing
-        buttonLoops();
-        if (startBtn.isPressed()) {
-            Serial.println("movement stopped");
-            break;
-        }
-
-        verticalStep.runSpeed();
-        move_count++;
-    }
-
-    Serial.println("done");
-    // Serial.println(String(move_count));
-    Serial.println(verticalStep.currentPosition());
-
-    toggleFan(false);
-}
 
 /*********** ARDUINO OPS ***********/
 
@@ -229,7 +185,4 @@ void loop() {
 
     // on start button, call wash cycle.
     if (startBtn.isPressed()) washCycle();
-
-    // EXPERIMENTAL ZONE
-    // if (startBtn.isPressed()) runTest();
 }
