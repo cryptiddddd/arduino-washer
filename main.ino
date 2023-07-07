@@ -26,21 +26,9 @@ const int MOVE_SPEED = 2000; // must be < max speed 4000
 const int REV_STEPS = 1600;
 
 /* TIMER VARS */
-const int TOTAL_MS = 20000; // This will be the variable used by the LCD screen and its buttons. The goal time.
-
-
-/*********** CALCS ***********/
-/**
- * Calculates seconds remaining for the cycle at the given start time.
- * @param startTime The time the cycle started, in MS.
- * @return Time remaining in ms.
- * @example If the cycle began at 5ms, and it is now 10,000ms, and the total time is 60,000ms, approximately 10 seconds of a minute-long wash has passed. 
- *  In that circumstance, `secondsRemaining()` will return `50,005`, as 50,005ms remain in the wash cycle. 
-*/
-int secondsRemaining(int startTime) {
-    // Return goal time minus current time.
-    return TOTAL_MS - (millis() - startTime);
-}
+const unsigned long int TOTAL_MS = 60000; // This will be the variable used by the LCD screen and its buttons. The goal time.
+const int TIME_PRINT_RES = 5000; // Every so many cycles, the timer screen will be updated.
+unsigned int displayTime = TOTAL_MS / 1000;
 
 
 /*********** PROTOCOLS ***********/
@@ -48,99 +36,113 @@ int secondsRemaining(int startTime) {
  * Runs all button loops.
 */
 void buttonLoops() {
-    startBtn.loop();
-    topFlag.loop();
-    botFlag.loop();
+	startBtn.loop();
+	topFlag.loop();
+	botFlag.loop();
 }
 
 /**
  * Enable/disable the fan.
 */
 void toggleFan(bool on) {
-    if (on)	digitalWrite(fanPin, HIGH);
-    else digitalWrite(fanPin, LOW);
+	Serial.println("TOGGLING FAN");
+	if (on)	digitalWrite(fanPin, HIGH);
+	else digitalWrite(fanPin, LOW);
 }
 
 /**
  * Updates the time screen with the current time remaining.
  * @param time The time remaining in ms.
 */
-void updateTimeScreen(int time) {
-    Serial.println(time); // TEMP
+void updateTimeScreen(unsigned long int goalTime) {
+	displayTime = (goalTime - millis()) / 1000;
+	Serial.println(displayTime);
 }
 
 /**
  * Checks the current time, updates time screen, and indicates whether the wash cycle should still be running or not.
- * @param startTime The time the cycle started, in ms.
+ * @param goalTime The predicted time the cycle will end..
  * @return True if the timer is still going (wash can continue). False if time is out.
 */
-bool isRunning(int startTime) {
-    int remainingTime = secondsRemaining(startTime);
-    updateTimeScreen(remainingTime);
-
-    return remainingTime > 0;
+bool isRunning(long unsigned int goalTime) {
+	return goalTime > millis();
 }
 
 /**
  * Lowers arm into its lowest position.
 */
 void lowerArm() {
-    verticalStep.setSpeed(MOVE_SPEED);
-    while (!botFlag.isPressed()) {
-        botFlag.loop();
-        verticalStep.runSpeed();
-    }
+	Serial.println("LOWERING ARM.");
+
+	verticalStep.setSpeed(MOVE_SPEED);
+	while (!botFlag.isPressed()) {
+		botFlag.loop();
+		verticalStep.runSpeed();
+	}
 }
 
 /**
  * Returns the arm to park position.
 */
 void parkArm() {
+	Serial.println("PARKING ARM.");
+
 	verticalStep.setSpeed(-MOVE_SPEED);
-    while (!topFlag.isPressed()) {
-        topFlag.loop();
-        verticalStep.runSpeed();
-    }
+	while (!topFlag.isPressed()) {
+		topFlag.loop();
+		verticalStep.runSpeed();
+	}
 }
 
 /**
  * Runs the wash cycle. Can be stopped by pressing start button.
 */
 void washCycle() {
-    toggleFan(true);
+	Serial.println("BEGIN WASH CYCLE");
 
-    // Set position 0.
-    lowerArm();
-    verticalStep.setCurrentPosition(0);
+	toggleFan(true);
 
-    // Set speeds.
-    verticalStep.setSpeed(-MOVE_SPEED);
-    rotationStep.setSpeed(MOVE_SPEED);
+	// Find/define position 0.
+	lowerArm();
+	verticalStep.setCurrentPosition(0);
 
-    // Local variable will track start time.
-    int startTime = millis();
+	// Set speeds.
+	verticalStep.setSpeed(-MOVE_SPEED);
+	rotationStep.setSpeed(MOVE_SPEED);
 
-    while (isRunning(startTime)) {
-        // Listen for "off".
-        buttonLoops();
+	// Local variable will track start time.
+	long unsigned int goalTime = millis() + TOTAL_MS;
+
+	// Cycle count will keep track of when to update the timer.
+	unsigned int cycles = TIME_PRINT_RES;
+
+	while (isRunning(goalTime)) {
+		if (cycles >= TIME_PRINT_RES) {
+			updateTimeScreen(goalTime);
+			cycles = 0;
+		}
+
+		// Listen for "off" & bottom flag.
+		buttonLoops();
 
 		if (startBtn.isPressed()) {
-            Serial.println("WASH ENDED EARLY!"); // TEMP: later print indication to screen.
-            break;
-        }
+			Serial.println("WASH ENDED EARLY!");
+			break;
+		}
 
-        // Reverse vertical motion.
-        if (botFlag.isPressed() || verticalStep.currentPosition() <= -8330) {
-            verticalStep.setSpeed(-verticalStep.speed());
-        }
+		// Reverse vertical motion.
+		if (botFlag.isPressed() || verticalStep.currentPosition() <= -8330) {
+			verticalStep.setSpeed(-verticalStep.speed());
+		}
 
-        // rotationStep.runSpeed(); // temp -- run only the vertcal stepper, determine what is slowing the cycle so badly.
+		rotationStep.runSpeed();
 		verticalStep.runSpeed();
-    }
+		++cycles;
+	}
 
-    // Reset.
-    parkArm();
-    toggleFan(false);
+	// Reset.
+	parkArm();
+	toggleFan(false);
 }
 
 
@@ -150,39 +152,39 @@ void washCycle() {
  * Sets/resets variables and makes connections.
 */
 void setup() {
-    // Configure serial output
-    Serial.begin(9600);
+	// Configure serial output
+	Serial.begin(9600);
 
-    topFlag.setDebounceTime(1);
+	// Set debounce times.
+	topFlag.setDebounceTime(50);
+	botFlag.setDebounceTime(50);
+	startBtn.setDebounceTime(50);
 
-    pinMode(stepPin, OUTPUT);
+	pinMode(stepPin, OUTPUT);
 	pinMode(dirPin, OUTPUT);
 	pinMode(startPin, INPUT_PULLUP);
 	pinMode(fanPin, OUTPUT);
 
-    verticalStep.setMaxSpeed(MAX_MOVE_SPEED);
-    rotationStep.setMaxSpeed(MAX_MOVE_SPEED);
+	verticalStep.setMaxSpeed(MAX_MOVE_SPEED);
+	rotationStep.setMaxSpeed(MAX_MOVE_SPEED);
 
-    // Return arm to park position if needed.
-    buttonLoops();
-    if (!topFlag.isPressed()) parkArm();
+	// Return arm to park position if needed.
+	buttonLoops();
+	if (topFlag.getStateRaw() == 1) parkArm(); // .getStateRaw() ignores debounce.
 
-    // Set official debounce after, to be sure that arm parks smartly.
-    topFlag.setDebounceTime(50);
-    botFlag.setDebounceTime(50);
-    startBtn.setDebounceTime(50);
+	Serial.println("THE BEAST AWAKENS");
 }
 
 /**
  * Main loop. Awaits button input.
 */
 void loop() {
-    // check button input
-    buttonLoops();
+	// check button input
+	buttonLoops();
 
-    // on up button, increase total time variable by one minute
-    // on down button, decrease total time variable by one minute.
+	// on up button, increase total time variable by one minute
+	// on down button, decrease total time variable by one minute.
 
-    // on start button, call wash cycle.
-    if (startBtn.isPressed()) washCycle();
+	// on start button, call wash cycle.
+	if (startBtn.isPressed()) washCycle();
 }

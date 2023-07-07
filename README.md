@@ -32,3 +32,19 @@ loop:
 - if currentposition is <= [whatever value is ~1.5 above the bottom] [note: negative value], reverse speed.
 - ?? logic for turning
 - runspeed on both motors
+
+
+CONCERN: 
+machine only operates when plugged into power And my laptop?
+
+07/06/2023 ACHIEVEMENTS
+- returns to park position on startup ONLY WHEN NEEDED, no more redundancy and scary screeching noise.
+- the wash cycle now runs at the appropriate pace!
+- the timer updates much more sparsely [related to the above]
+
+THINGS I LEARNED
+- specifying "unsigned long int" actually is really important!
+- the wash cycle loop runs >2400 times per second!
+
+NEXT STEPS:
+i am out of compilations for today, but i think i will work on reorganizing the code of the wash cycle, in preparation for making the rotation stepper move back and forth.
