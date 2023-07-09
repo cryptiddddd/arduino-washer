@@ -21,13 +21,13 @@ ezButton botFlag(9);
 ezButton startBtn(startPin);
 
 /* UNIT DEFINITIONS */
-const int MAX_MOVE_SPEED = 3000; 
-const int MOVE_SPEED = 2000; // must be < max speed 4000
-const int REV_STEPS = 1600;
+const int MAX_MOVE_SPEED = 4000;
+const int LOWERING_SPEED = 2000;
+const int MOVE_SPEED = 3500;
 
 /* TIMER VARS */
 const unsigned long int TOTAL_MS = 60000; // This will be the variable used by the LCD screen and its buttons. The goal time.
-const int TIME_PRINT_RES = 5000; // Every so many cycles, the timer screen will be updated.
+const int PRINT_CLOCK_RES = 5000; // Every so many cycles, the timer screen will be updated.
 unsigned int displayTime = TOTAL_MS / 1000;
 
 
@@ -74,7 +74,7 @@ bool isRunning(long unsigned int goalTime) {
 void lowerArm() {
 	Serial.println("LOWERING ARM.");
 
-	verticalStep.setSpeed(MOVE_SPEED);
+	verticalStep.setSpeed(LOWERING_SPEED);
 	while (!botFlag.isPressed()) {
 		botFlag.loop();
 		verticalStep.runSpeed();
@@ -92,6 +92,23 @@ void parkArm() {
 		topFlag.loop();
 		verticalStep.runSpeed();
 	}
+}
+
+/**
+ * Reverses basket rotation when needed..
+*/
+void checkRotation() {
+	// Guard clause--if the position is not far enough, return.
+	if (abs(rotationStep.currentPosition()) < 1600) {
+		return;
+	}
+
+	int newSpeed = -rotationStep.speed();
+
+	// gonna try it this way, but resetting the position might not actually be needed!
+	// clockwise rotation is positive, relative to 0. knowing this, i can refactor and reconfigure.
+	rotationStep.setCurrentPosition(0);
+	rotationStep.setSpeed(newSpeed);
 }
 
 /**
@@ -114,10 +131,10 @@ void washCycle() {
 	long unsigned int goalTime = millis() + TOTAL_MS;
 
 	// Cycle count will keep track of when to update the timer.
-	unsigned int cycles = TIME_PRINT_RES;
+	unsigned int cycles = PRINT_CLOCK_RES;
 
 	while (isRunning(goalTime)) {
-		if (cycles >= TIME_PRINT_RES) {
+		if (cycles >= PRINT_CLOCK_RES) {
 			updateTimeScreen(goalTime);
 			cycles = 0;
 		}
@@ -135,6 +152,9 @@ void washCycle() {
 			verticalStep.setSpeed(-verticalStep.speed());
 		}
 
+		checkRotation();
+
+		// Run steppers.
 		rotationStep.runSpeed();
 		verticalStep.runSpeed();
 		++cycles;
