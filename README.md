@@ -1,6 +1,6 @@
 # 3D Printed Part Washer
 
-
+### 
 
 ---
 note that seconds handled in ms
@@ -35,7 +35,7 @@ loop:
 
 
 CONCERN: 
-machine only operates when plugged into power And my laptop?
+machine only operates when plugged into usb power
 
 07/06/2023 ACHIEVEMENTS
 - returns to park position on startup ONLY WHEN NEEDED, no more redundancy and scary screeching noise.

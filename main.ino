@@ -20,22 +20,23 @@ ezButton topFlag(11);
 ezButton botFlag(9);
 ezButton startBtn(startPin);
 
-/* UNIT DEFINITIONS */
+/* MOTOR SPEEDS */
 const int MAX_MOVE_SPEED = 4000;
-const int LOWERING_SPEED = 2000;
-const int MOVE_SPEED = 3500;
+const int LOWERING_SPEED = 3000;
+const int MOVE_SPEED = 4000;
+const int ROTATION_SPEED = 3500;
 
 /* TIMER VARS */
 const unsigned long int TOTAL_MS = 60000; // This will be the variable used by the LCD screen and its buttons. The goal time.
 const int PRINT_CLOCK_RES = 5000; // Every so many cycles, the timer screen will be updated.
-unsigned int displayTime = TOTAL_MS / 1000;
+unsigned int displaySeconds = TOTAL_MS / 1000;
 
 
-/*********** PROTOCOLS ***********/
+/*********** HELPERS/CALCULATIONS ***********/
 /**
  * Runs all button loops.
 */
-void buttonLoops() {
+inline void buttonLoops() {
 	startBtn.loop();
 	topFlag.loop();
 	botFlag.loop();
@@ -55,8 +56,12 @@ void toggleFan(bool on) {
  * @param time The time remaining in ms.
 */
 void updateTimeScreen(unsigned long int goalTime) {
-	displayTime = (goalTime - millis()) / 1000;
-	Serial.println(displayTime);
+	int prevTime = displaySeconds;
+	displaySeconds = (goalTime - millis()) / 1000;
+	if (displaySeconds != prevTime) {
+		// Print if it's a new time.	
+		Serial.println(displaySeconds);
+	}
 }
 
 /**
@@ -68,6 +73,8 @@ bool isRunning(long unsigned int goalTime) {
 	return goalTime > millis();
 }
 
+
+/********** PROTOCOLS *********/
 /**
  * Lowers arm into its lowest position.
 */
@@ -99,7 +106,7 @@ void parkArm() {
 */
 void checkRotation() {
 	// Guard clause--if the position is not far enough, return.
-	if (abs(rotationStep.currentPosition()) < 1600) {
+	if (abs(rotationStep.currentPosition()) < 2100) { // This number has been configured to a full rotation of the machine.
 		return;
 	}
 
@@ -125,7 +132,7 @@ void washCycle() {
 
 	// Set speeds.
 	verticalStep.setSpeed(-MOVE_SPEED);
-	rotationStep.setSpeed(MOVE_SPEED);
+	rotationStep.setSpeed(ROTATION_SPEED);
 
 	// Local variable will track start time.
 	long unsigned int goalTime = millis() + TOTAL_MS;
@@ -180,6 +187,7 @@ void setup() {
 	botFlag.setDebounceTime(50);
 	startBtn.setDebounceTime(50);
 
+	// Set pin modes.
 	pinMode(stepPin, OUTPUT);
 	pinMode(dirPin, OUTPUT);
 	pinMode(startPin, INPUT_PULLUP);
