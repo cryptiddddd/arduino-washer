@@ -21,9 +21,9 @@ ezButton botFlag(9);
 ezButton startBtn(startPin);
 
 /* MOTOR SPEEDS */
-const int MAX_MOVE_SPEED = 4000;
+const int MAX_MOVE_SPEED = 3000;
 const int LOWERING_SPEED = 3000;
-const int MOVE_SPEED = 4000;
+const int MOVE_SPEED = 1000;
 const int ROTATION_SPEED = 3500;
 
 /* TIMER VARS */
