@@ -23,8 +23,11 @@ ezButton startBtn(startPin);
 /* MOTOR SPEEDS */
 const int MAX_MOVE_SPEED = 3000;
 const int LOWERING_SPEED = 3000;
-const int MOVE_SPEED = 1000;
-const int ROTATION_SPEED = 3500;
+const int MOVE_SPEED = 4000;
+const int ROTATION_SPEED = 2000;
+
+// Height range of motion during wash cycle.
+const int WASH_RANGE = 4000;
 
 /* TIMER VARS */
 const unsigned long int TOTAL_MS = 60000; // This will be the variable used by the LCD screen and its buttons. The goal time.
@@ -59,7 +62,7 @@ void updateTimeScreen(unsigned long int goalTime) {
 	int prevTime = displaySeconds;
 	displaySeconds = (goalTime - millis()) / 1000;
 	if (displaySeconds != prevTime) {
-		// Print if it's a new time.	
+		// Print only if it's a new time.	
 		Serial.println(displaySeconds);
 	}
 }
@@ -80,8 +83,11 @@ bool isRunning(long unsigned int goalTime) {
 */
 void lowerArm() {
 	Serial.println("LOWERING ARM.");
-
+	
+	// Set speed
 	verticalStep.setSpeed(LOWERING_SPEED);
+
+	// Lower until it reaches destination
 	while (!botFlag.isPressed()) {
 		botFlag.loop();
 		verticalStep.runSpeed();
@@ -94,6 +100,7 @@ void lowerArm() {
 void parkArm() {
 	Serial.println("PARKING ARM.");
 
+	// Set speed -- negative moves upwards.
 	verticalStep.setSpeed(-MOVE_SPEED);
 	while (!topFlag.isPressed()) {
 		topFlag.loop();
@@ -155,7 +162,7 @@ void washCycle() {
 		}
 
 		// Reverse vertical motion.
-		if (botFlag.isPressed() || verticalStep.currentPosition() <= -8330) {
+		if (botFlag.isPressed() || verticalStep.currentPosition() <= -WASH_RANGE) {
 			verticalStep.setSpeed(-verticalStep.speed());
 		}
 
