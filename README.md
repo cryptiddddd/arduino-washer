@@ -1,11 +1,11 @@
 # 3D Printed Part Washer
 
-note that seconds handled in ms
+This repository holds code for an automated 3D-printed part washer. Design details can be found in [docs](/docs/) (in-progress).
 
-future plans:
-when buttons exist: manual control for moving the thing up and down. this will make it much easier for debugging stuff.
+## Upcoming plans:
 
-there also needs to be an emergency stop.
-
-CONCERN: 
-machine only operates when plugged into usb power in addition to ac.
+- Addition of buttons.
+    - Adjustable wash cycle time (by minute?)
+    - Adjustable vertical movement range.
+- Emergency stop button?
+- Additional fans?

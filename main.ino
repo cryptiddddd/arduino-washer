@@ -14,7 +14,7 @@ const unsigned short int startPin = 8;
 
 /* OBJECTS */
 AccelStepper verticalStep(AccelStepper::FULL2WIRE, 2, 3);
-AccelStepper rotationStep(AccelStepper::FULL2WIRE, 4, 5); // this may need to be 
+AccelStepper rotationStep(AccelStepper::FULL2WIRE, 4, 5);
 
 ezButton topFlag(11);
 ezButton botFlag(9);
@@ -153,7 +153,7 @@ void washCycle() {
 			cycles = 0;
 		}
 
-		// Listen for "off" & bottom flag.
+		// Listen for "off" or bottom flag.
 		buttonLoops();
 
 		if (startBtn.isPressed()) {
@@ -214,12 +214,12 @@ void setup() {
  * Main loop. Awaits button input.
 */
 void loop() {
-	// check button input
+	// Check button input
 	buttonLoops();
 
 	// on up button, increase total time variable by one minute
 	// on down button, decrease total time variable by one minute.
 
-	// on start button, call wash cycle.
+	// On start button, call wash cycle.
 	if (startBtn.isPressed()) washCycle();
 }

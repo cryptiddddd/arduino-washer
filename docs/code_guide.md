@@ -1,3 +1,7 @@
+# Code Guide
+
+> Completed as of 07/10/2023.
+
 This file is a guide to [`main.ino`](../main.ino). It is advised to read about the machine's [design concept](./design.md) before reading notes on the code.
 
 

@@ -1,6 +1,8 @@
 # 3D Part Washer Design
 
-> Note that the intention of this document is to only explain what is necessary to work with the machine from the side of programming. I did not assemble the machine or its Arduino, and to explain it would unfortunately be out of my reach.
+> Incomplete.
+
+Note that the intention of this document is to only explain what is necessary to work with the machine from the side of programming. I did not assemble the machine or its Arduino, and to explain it would unfortunately be out of my reach.
 
 
 ## Machine Design

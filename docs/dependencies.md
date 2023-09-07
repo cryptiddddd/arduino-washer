@@ -1,5 +1,7 @@
 # Dependencies
 
+> Completed as of 07/10/2023.
+
 This program uses the AccelStepper Arduino library, built by Mike McCauley. [View documentation here.](http://www.airspayce.com/mikem/arduino/AccelStepper/index.html)
 
 This program also uses the ezButton Arduino library. [View documentation here.](https://arduinogetstarted.com/tutorials/arduino-button-library)
